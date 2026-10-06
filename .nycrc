@@ -1,0 +1,17 @@
+{
+  "include": [
+    "*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests",
+    "coverage",
+    "server.js"
+  ],
+  "reporter": [
+    "text-summary",
+    "html"
+  ],
+  "all": true,
+  "cache": false
+}
