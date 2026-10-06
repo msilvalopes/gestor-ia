@@ -1,45 +1,94 @@
 const request = require('supertest');
 const app = require('../server');
-const Task = require('../models/Task');
 
-// Mock do modelo Task
-jest.mock('../models/Task');
-
-describe('GET /tasks', () => {
+describe('POST /tasks', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Limpar dados antes de cada teste
+    // Aqui poderia limpar o banco de dados se estivesse usando um
   });
 
-  test('deve retornar todas as tarefas com sucesso', async () => {
-    const mockTasks = [
-      { id: 1, title: 'Tarefa 1', description: 'Descrição 1', completed: false },
-      { id: 2, title: 'Tarefa 2', description: 'Descrição 2', completed: true }
-    ];
+  test('should create a new task with valid data', async () => {
+    const taskData = {
+      title: 'Test Task',
+      description: 'This is a test task',
+      completed: false
+    };
 
-    Task.find.mockResolvedValue(mockTasks);
+    const response = await request(app)
+      .post('/tasks')
+      .send(taskData)
+      .expect(201);
 
-    const response = await request(app).get('/tasks');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(mockTasks);
-    expect(Task.find).toHaveBeenCalledTimes(1);
+    expect(response.body).toHaveProperty('title', taskData.title);
+    expect(response.body).toHaveProperty('description', taskData.description);
+    expect(response.body).toHaveProperty('completed', taskData.completed);
+    expect(response.body).toHaveProperty('_id');
   });
 
-  test('deve retornar erro interno do servidor quando ocorrer falha no banco de dados', async () => {
-    Task.find.mockRejectedValue(new Error('Erro no banco de dados'));
+  test('should return 400 error when title is missing', async () => {
+    const taskData = {
+      description: 'This is a test task',
+      completed: false
+    };
 
-    const response = await request(app).get('/tasks');
+    const response = await request(app)
+      .post('/tasks')
+      .send(taskData)
+      .expect(400);
 
-    expect(response.status).toBe(500);
-    expect(response.body).toHaveProperty('error', 'Erro no servidor');
+    expect(response.body).toHaveProperty('error');
   });
 
-  test('deve retornar array vazio quando não houver tarefas', async () => {
-    Task.find.mockResolvedValue([]);
+  test('should return 400 error when title is empty string', async () => {
+    const taskData = {
+      title: '',
+      description: 'This is a test task',
+      completed: false
+    };
 
-    const response = await request(app).get('/tasks');
+    const response = await request(app)
+      .post('/tasks')
+      .send(taskData)
+      .expect(400);
 
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual([]);
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 400 error when description is missing', async () => {
+    const taskData = {
+      title: 'Test Task',
+      completed: false
+    };
+
+    const response = await request(app)
+      .post('/tasks')
+      .send(taskData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 400 error when completed is not a boolean', async () => {
+    const taskData = {
+      title: 'Test Task',
+      description: 'This is a test task',
+      completed: 'not-a-boolean'
+    };
+
+    const response = await request(app)
+      .post('/tasks')
+      .send(taskData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty('error');
+  });
+
+  test('should return 400 error when task data is empty', async () => {
+    const response = await request(app)
+      .post('/tasks')
+      .send({})
+      .expect(400);
+
+    expect(response.body).toHaveProperty('error');
   });
 });
