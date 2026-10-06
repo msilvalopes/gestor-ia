@@ -1,23 +1,45 @@
 const request = require('supertest');
 const app = require('../server');
+const Task = require('../models/Task');
 
-describe('GET /tasks/:id', () => {
-  test('Deve retornar uma tarefa específica quando o ID existir', async () => {
-    const response = await request(app).get('/tasks/1');
+// Mock do modelo Task
+jest.mock('../models/Task');
+
+describe('GET /tasks', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('deve retornar todas as tarefas com sucesso', async () => {
+    const mockTasks = [
+      { id: 1, title: 'Tarefa 1', description: 'Descrição 1', completed: false },
+      { id: 2, title: 'Tarefa 2', description: 'Descrição 2', completed: true }
+    ];
+
+    Task.find.mockResolvedValue(mockTasks);
+
+    const response = await request(app).get('/tasks');
+
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('id', 1);
-    expect(response.body).toHaveProperty('title', 'Tarefa 1');
+    expect(response.body).toEqual(mockTasks);
+    expect(Task.find).toHaveBeenCalledTimes(1);
   });
 
-  test('Deve retornar 404 quando o ID não existir', async () => {
-    const response = await request(app).get('/tasks/999');
-    expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty('message', 'Tarefa não encontrada');
+  test('deve retornar erro interno do servidor quando ocorrer falha no banco de dados', async () => {
+    Task.find.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    const response = await request(app).get('/tasks');
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty('error', 'Erro no servidor');
   });
 
-  test('Deve retornar 404 para IDs inválidos', async () => {
-    const response = await request(app).get('/tasks/abc');
-    expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty('message', 'Tarefa não encontrada');
+  test('deve retornar array vazio quando não houver tarefas', async () => {
+    Task.find.mockResolvedValue([]);
+
+    const response = await request(app).get('/tasks');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
   });
 });
