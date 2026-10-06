@@ -4,45 +4,20 @@ const router = express.Router();
 // Mock data - em uma aplicação real, isso viria de um banco de dados
 let tasks = [
   { id: 1, title: 'Tarefa 1', description: 'Descrição da tarefa 1', completed: false },
-  { id: 2, title: 'Tarefa 2', description: 'Descrição da tarefa 2', completed: true }
+  { id: 2, title: 'Tarefa 2', description: 'Descrição da tarefa 2', completed: true },
+  { id: 3, title: 'Tarefa 3', description: 'Descrição da tarefa 3', completed: false }
 ];
 
-let nextId = 3;
-
-// POST /tasks - Criar nova tarefa
-router.post('/', (req, res) => {
-  const { title, description, completed } = req.body;
+// GET /tasks/:id - Buscar uma tarefa específica por ID
+router.get('/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const task = tasks.find(t => t.id === id);
   
-  // Validação de dados
-  if (!title || typeof title !== 'string' || title.trim() === '') {
-    return res.status(400).json({
-      error: 'O título é obrigatório e deve ser uma string não vazia'
-    });
+  if (!task) {
+    return res.status(404).json({ message: 'Tarefa não encontrada' });
   }
   
-  if (typeof description !== 'string') {
-    return res.status(400).json({
-      error: 'A descrição deve ser uma string'
-    });
-  }
-  
-  if (completed !== undefined && typeof completed !== 'boolean') {
-    return res.status(400).json({
-      error: 'O campo completed deve ser um valor booleano'
-    });
-  }
-  
-  // Criação da nova tarefa
-  const newTask = {
-    id: nextId++,
-    title: title.trim(),
-    description: description || '',
-    completed: completed === undefined ? false : completed
-  };
-  
-  tasks.push(newTask);
-  
-  res.status(201).json(newTask);
+  res.json(task);
 });
 
 module.exports = router;
