@@ -1,76 +1,65 @@
 const express = require('express');
 const router = express.Router();
+const Task = require('../models/Task');
+const { validateTask } = require('../middleware/validation');
 
-// Mock data - em uma aplicação real, isso viria de um banco de dados
-let tasks = [
-  { id: 1, title: 'Tarefa 1', completed: false },
-  { id: 2, title: 'Tarefa 2', completed: true },
-  { id: 3, title: 'Tarefa 3', completed: false }
-];
-
-// GET /tasks - Obter todas as tarefas
-router.get('/', (req, res) => {
-  res.json(tasks);
+// Get all tasks
+router.get('/', async (req, res) => {
+  try {
+    const tasks = await Task.findAll();
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// GET /tasks/:id - Obter uma tarefa específica
-router.get('/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const task = tasks.find(t => t.id === id);
-  
-  if (!task) {
-    return res.status(404).json({ error: 'Tarefa não encontrada' });
+// Create a new task
+router.post('/', validateTask, async (req, res) => {
+  try {
+    const task = await Task.create(req.body);
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  res.json(task);
 });
 
-// POST /tasks - Criar uma nova tarefa
-router.post('/', (req, res) => {
-  const { title } = req.body;
-  
-  if (!title) {
-    return res.status(400).json({ error: 'Título é obrigatório' });
+// Get a task by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const newTask = {
-    id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
-    title,
-    completed: false
-  };
-  
-  tasks.push(newTask);
-  res.status(201).json(newTask);
 });
 
-// PUT /tasks/:id - Atualizar uma tarefa específica
-router.put('/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === id);
-  
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: 'Tarefa não encontrada' });
+// Update a task
+router.put('/:id', validateTask, async (req, res) => {
+  try {
+    const task = await Task.update(req.params.id, req.body);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const { title, completed } = req.body;
-  
-  if (title !== undefined) task.title = title;
-  if (completed !== undefined) task.completed = completed;
-  
-  res.json(tasks[taskIndex]);
 });
 
-// DELETE /tasks/:id - Excluir uma tarefa específica
-router.delete('/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === id);
-  
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: 'Tarefa não encontrada' });
+// Delete a task
+router.delete('/:id', async (req, res) => {
+  try {
+    const task = await Task.delete(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  
-  const deletedTask = tasks.splice(taskIndex, 1)[0];
-  res.json({ message: 'Tarefa excluída com sucesso', task: deletedTask });
 });
 
 module.exports = router;
