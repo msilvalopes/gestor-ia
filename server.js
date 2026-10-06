@@ -1,11 +1,20 @@
 const express = require('express');
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
+// Middleware para parser do body
+app.use(express.json());
+
+// Rota inicial
 app.get('/', (req, res) => {
-  res.send('API de Tarefas está funcionando!');
+  res.send('API de Tarefas - Servidor rodando!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+// Rotas das tarefas
+const taskRoutes = require('./routes/tasks');
+app.use('/tasks', taskRoutes);
+
+// Iniciar o servidor
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
 });
