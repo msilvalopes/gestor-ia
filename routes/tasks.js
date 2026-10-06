@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Mock data
+// Mock data - em uma aplicação real, isso viria de um banco de dados
 let tasks = [
   { id: 1, title: 'Tarefa 1', completed: false },
   { id: 2, title: 'Tarefa 2', completed: true },
@@ -27,7 +27,7 @@ router.get('/:id', (req, res) => {
 
 // POST /tasks - Criar uma nova tarefa
 router.post('/', (req, res) => {
-  const { title, completed = false } = req.body;
+  const { title } = req.body;
   
   if (!title) {
     return res.status(400).json({ error: 'Título é obrigatório' });
@@ -36,14 +36,14 @@ router.post('/', (req, res) => {
   const newTask = {
     id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
     title,
-    completed
+    completed: false
   };
   
   tasks.push(newTask);
   res.status(201).json(newTask);
 });
 
-// PUT /tasks/:id - Atualizar uma tarefa existente
+// PUT /tasks/:id - Atualizar uma tarefa específica
 router.put('/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const taskIndex = tasks.findIndex(t => t.id === id);
@@ -54,18 +54,13 @@ router.put('/:id', (req, res) => {
   
   const { title, completed } = req.body;
   
-  if (title !== undefined) {
-    tasks[taskIndex].title = title;
-  }
-  
-  if (completed !== undefined) {
-    tasks[taskIndex].completed = completed;
-  }
+  if (title !== undefined) task.title = title;
+  if (completed !== undefined) task.completed = completed;
   
   res.json(tasks[taskIndex]);
 });
 
-// DELETE /tasks/:id - Excluir uma tarefa
+// DELETE /tasks/:id - Excluir uma tarefa específica
 router.delete('/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const taskIndex = tasks.findIndex(t => t.id === id);
@@ -75,7 +70,7 @@ router.delete('/:id', (req, res) => {
   }
   
   const deletedTask = tasks.splice(taskIndex, 1)[0];
-  res.json(deletedTask);
+  res.json({ message: 'Tarefa excluída com sucesso', task: deletedTask });
 });
 
 module.exports = router;
