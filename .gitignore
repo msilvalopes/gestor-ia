@@ -1,0 +1,52 @@
+# Logs
+logs
+*.log
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+dist/
+
+# Testing
+coverage/
+test-results/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+*.build.js
+
+# Temporary files
+*~
+*.tmp
+*.temp
+
+# Coverage
+.nyc_output/
+coverage/
+
+# Node.js
+.nyc_output/
+.nyc_output/
